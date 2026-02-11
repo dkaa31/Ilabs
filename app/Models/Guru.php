@@ -17,17 +17,16 @@ class Guru extends Model
 
     public function ruangan()
     {
-    return $this->hasOne(Ruangan::class);
+        return $this->hasOne(Ruangan::class);
     }
 
     public function kelas()
     {
-    return $this->hasOne(Kelas::class, 'id_guru');
+        return $this->hasOne(Kelas::class, 'id_guru');
     }
 
     public function user()
     {
-    return $this->morphOne(User::class, 'userable');
+        return $this->morphOne(User::class, 'userable');
     }
 }
-

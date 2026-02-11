@@ -23,10 +23,10 @@ class DisplayController extends Controller
     public function showSlide($ruanganId)
     {
         $ruangan = Ruangan::with('guru')->findOrFail($ruanganId);
-        
+
         $now = now()->timezone('Asia/Jakarta');
         $hariIni = $now->format('l');
-        
+
         $hariMap = [
             'Monday' => 'Senin',
             'Tuesday' => 'Selasa',
@@ -36,7 +36,6 @@ class DisplayController extends Controller
         ];
         $hariIndo = $hariMap[$hariIni] ?? 'Senin';
 
-        // 🔥 Tambahkan relasi 'kelas'
         $jadwalHariIni = Jadwal::with(['guru', 'mapel', 'kelas'])
             ->where('id_ruangan', $ruangan->id_ruangan)
             ->where('hari', $hariIndo)
@@ -49,7 +48,7 @@ class DisplayController extends Controller
         foreach ($jadwalHariIni as $j) {
             $mulai = \Carbon\Carbon::parse($j->waktu_mulai)->format('H:i');
             $selesai = \Carbon\Carbon::parse($j->waktu_selesai)->format('H:i');
-            
+
             if ($jamSekarang >= $mulai && $jamSekarang < $selesai) {
                 $jadwalSekarang = $j;
                 break;
@@ -73,8 +72,7 @@ class DisplayController extends Controller
         }
 
         $ruangan = Ruangan::with('guru')->findOrFail($ruanganId);
-        
-        // 🔥 Tambahkan relasi 'kelas'
+
         $jadwals = Jadwal::with(['guru', 'mapel', 'kelas'])
             ->where('id_ruangan', $ruangan->id_ruangan)
             ->where('hari', $hari)

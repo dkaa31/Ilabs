@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up()
-{
-    Schema::create('mapels', function (Blueprint $table) {
-        $table->id('id_mapel');
-        $table->string('nama');
-        $table->string('kode')->unique();
-        $table->timestamps();
-    });
-}
+    {
+        Schema::create('mapels', function (Blueprint $table) {
+            $table->id('id_mapel');
+            $table->string('nama');
+            $table->string('kode')->unique();
+            $table->timestamps();
+        });
+    }
 
     public function down(): void
     {

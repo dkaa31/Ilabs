@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('nama');
             $table->foreignId('id_guru')->nullable()->constrained('gurus', 'id_guru')->nullOnDelete();
             $table->timestamps();
-    });
+        });
     }
 
     public function down(): void

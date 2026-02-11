@@ -15,13 +15,13 @@ class Siswa extends Model
 
     protected $fillable = ['nis', 'nisn', 'nama', 'id_kelas'];
 
-public function kelas()
-{
-    return $this->belongsTo(Kelas::class, 'id_kelas', 'id_kelas');
-}
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'id_kelas', 'id_kelas');
+    }
 
     public function user()
     {
-    return $this->morphOne(User::class, 'userable');
+        return $this->morphOne(User::class, 'userable');
     }
 }

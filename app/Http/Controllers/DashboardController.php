@@ -21,7 +21,7 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $tanggal = $request->query('tanggal', now()->format('Y-m-d'));
-        
+
         if (!Carbon::hasFormat($tanggal, 'Y-m-d')) {
             $tanggal = now()->format('Y-m-d');
         }
@@ -39,15 +39,18 @@ class DashboardController extends Controller
     private function showAdminDashboard()
     {
         $activeSessions = UserSession::with('user')->get();
-        $activeByRole = ['admin' => 0, 'guru' => 0, 'siswa' => 0];
+
+        $activeByRole = [
+            'admin' => 0,
+            'guru' => 0,
+            'siswa' => 0
+        ];
 
         foreach ($activeSessions as $session) {
-            if (isset($activeByRole[$session->user->role])) {
+            if ($session->user && isset($activeByRole[$session->user->role])) {
                 $activeByRole[$session->user->role]++;
             }
         }
-
-        $totalActive = array_sum($activeByRole);
 
         return view('admin.dashboard.admin', [
             'totalGuru' => Guru::count(),
@@ -57,17 +60,17 @@ class DashboardController extends Controller
             'totalUser' => User::count(),
             'totalKelas' => Kelas::count(),
             'activeAdmin' => $activeByRole['admin'],
-            'activeGuru'  => $activeByRole['guru'],
+            'activeGuru' => $activeByRole['guru'],
             'activeSiswa' => $activeByRole['siswa'],
-            'totalActive' => $totalActive,
+            'totalActive' => array_sum($activeByRole),
         ]);
     }
 
     private function showGuruDashboard(string $tanggal)
     {
-        $guru = auth()->user()->userable;
+        $guru = Auth::user()->userable;
         $kelasBinaan = Kelas::where('id_guru', $guru->id_guru)->first();
-        $carbonTanggal = Carbon::parse($tanggal);
+        $tanggalSekarang = Carbon::parse($tanggal);
 
         $hariMap = [
             'monday' => 'senin',
@@ -78,11 +81,13 @@ class DashboardController extends Controller
             'saturday' => 'sabtu',
             'sunday' => 'minggu',
         ];
-        $hariIndo = $hariMap[strtolower($carbonTanggal->englishDayOfWeek)] ?? 'senin';
+
+        $hariIndo = $hariMap[strtolower($tanggalSekarang->englishDayOfWeek)];
         $jamSekarang = now()->format('H:i:s');
 
         $jadwalSaatIni = null;
-        if ($carbonTanggal->isToday()) {
+
+        if ($tanggalSekarang->isToday()) {
             $jadwalSaatIni = Jadwal::with(['kelas', 'mapel', 'ruangan'])
                 ->where('id_guru', $guru->id_guru)
                 ->where('hari', $hariIndo)
@@ -98,33 +103,41 @@ class DashboardController extends Controller
             ->get();
 
         $izinMenunggu = collect();
+
         if ($kelasBinaan) {
             $izinMenunggu = Izin::with('siswa')
-                ->whereHas('siswa', fn($q) => $q->where('id_kelas', $kelasBinaan->id_guru))
+                ->whereHas('siswa', function ($q) use ($kelasBinaan) {
+                    $q->where('id_kelas', $kelasBinaan->id_kelas);
+                })
                 ->where('status', 'menunggu')
                 ->get();
         }
 
-        $totalHadir = $totalIzin = $totalSakit = $totalAlpa = 0;
+        $totalHadir = 0;
+        $totalIzin = 0;
+        $totalSakit = 0;
+        $totalAlpa = 0;
 
         if ($kelasBinaan) {
-            $hariIni = strtolower($carbonTanggal->englishDayOfWeek);
-            if (!in_array($hariIni, ['saturday', 'sunday'])) {
-                $siswaKelas = Siswa::where('id_kelas', $kelasBinaan->id_guru)->get();
-                $tanggalHariIni = $carbonTanggal->format('Y-m-d');
+            if (!in_array(strtolower($tanggalSekarang->englishDayOfWeek), ['saturday', 'sunday'])) {
+
+                $siswaKelas = Siswa::where('id_kelas', $kelasBinaan->id_kelas)->get();
+                $tgl = $tanggalSekarang->format('Y-m-d');
 
                 foreach ($siswaKelas as $siswa) {
+
                     $absen = Absensi::where('id_user', $siswa->id_siswa)
-                        ->whereDate('created_at', $tanggalHariIni)
+                        ->whereDate('created_at', $tgl)
                         ->first();
 
                     if ($absen) {
                         $totalHadir++;
                     } else {
+
                         $izin = Izin::where('id_siswa', $siswa->id_siswa)
                             ->where('status', 'disetujui')
-                            ->whereDate('tanggal_mulai', '<=', $tanggalHariIni)
-                            ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
+                            ->whereDate('tanggal_mulai', '<=', $tgl)
+                            ->whereDate('tanggal_selesai', '>=', $tgl)
                             ->first();
 
                         if ($izin) {
@@ -141,51 +154,49 @@ class DashboardController extends Controller
             }
         }
 
-        $maxValue = max($totalHadir, $totalIzin, $totalSakit, $totalAlpa);
-        if ($maxValue == 0) $maxValue = 1;
+        $maxKehadiran = max($totalHadir, $totalIzin, $totalSakit, $totalAlpa, 1);
 
-        return view('guru.dashboard.guru', [
-            'guru' => $guru,
-            'kelasBinaan' => $kelasBinaan,
-            'jadwalSaatIni' => $jadwalSaatIni,
-            'jadwalHariIni' => $jadwalHariIni,
-            'izinMenunggu' => $izinMenunggu,
-            'totalHadir' => $totalHadir,
-            'totalIzin' => $totalIzin,
-            'totalSakit' => $totalSakit,
-            'totalAlpa' => $totalAlpa,
-            'maxKehadiran' => $maxValue,
-            'tanggalSekarang' => $carbonTanggal,
-        ]);
+        return view('guru.dashboard.guru', compact(
+            'guru',
+            'kelasBinaan',
+            'tanggalSekarang',
+            'jadwalSaatIni',
+            'jadwalHariIni',
+            'izinMenunggu',
+            'totalHadir',
+            'totalIzin',
+            'totalSakit',
+            'totalAlpa',
+            'maxKehadiran'
+        ));
     }
 
-    private function showSiswaDashboard(string $tanggal = null)
+    private function showSiswaDashboard(string $tanggal)
 {
-    $siswa = auth()->user()->userable;
-    $kelas = $siswa->kelas;
+    $user = Auth::user();
+    $siswa = $user->userable;
+    $kelas = $siswa?->kelas;
 
-    $carbonTanggal = $tanggal ? Carbon::parse($tanggal) : Carbon::now();
+    $tanggalSekarang = Carbon::parse($tanggal);
 
-    $absenHariIni = Absensi::where('id_user', $siswa->id_siswa)
-        ->whereDate('created_at', $carbonTanggal->format('Y-m-d'))
+    $absenHariIni = Absensi::where('id_user', $user->id_user)
+        ->whereDate('created_at', $tanggalSekarang)
         ->first();
 
     $izinAktif = Izin::where('id_siswa', $siswa->id_siswa)
         ->where('status', 'disetujui')
-        ->whereDate('tanggal_mulai', '<=', $carbonTanggal->format('Y-m-d'))
-        ->whereDate('tanggal_selesai', '>=', $carbonTanggal->format('Y-m-d'))
+        ->whereDate('tanggal_mulai', '<=', $tanggalSekarang)
+        ->whereDate('tanggal_selesai', '>=', $tanggalSekarang)
         ->first();
 
-    $riwayat = [];
-    $endDate = Carbon::now();
-    $startDate = $endDate->copy()->subDays(6);
+    $riwayat = collect();
 
-    for ($date = $startDate; $date->lte($endDate); $date->addDay()) {
-        $dayName = strtolower($date->englishDayOfWeek);
-        if (in_array($dayName, ['saturday', 'sunday'])) continue;
+    for ($i = 0; $i < 7; $i++) {
 
-        $tgl = $date->format('Y-m-d');
-        $absen = Absensi::where('id_user', $siswa->id_siswa)
+        $tgl = now()->subDays($i);
+        $status = 'Alpa';
+
+        $absen = Absensi::where('id_user', $user->id_user)
             ->whereDate('created_at', $tgl)
             ->first();
 
@@ -200,16 +211,14 @@ class DashboardController extends Controller
 
             if ($izin) {
                 $status = ucfirst($izin->jenis);
-            } else {
-                $status = 'Alpa';
             }
         }
 
-        $riwayat[] = [
-            'tanggal' => $date->copy(),
+        $riwayat->push([
+            'tanggal' => $tgl,
             'status' => $status,
-            'is_today' => $date->isToday(),
-        ];
+            'is_today' => $tgl->isToday()
+        ]);
     }
 
     return view('siswa.dashboard.siswa', compact(
@@ -217,8 +226,8 @@ class DashboardController extends Controller
         'kelas',
         'absenHariIni',
         'izinAktif',
-        'riwayat',
-        'carbonTanggal'
+        'riwayat'
     ));
 }
+
 }

@@ -18,54 +18,54 @@ class AuthenticatedSessionController extends Controller
     }
 
     public function store(LoginRequest $request): RedirectResponse
-{
-    $request->authenticate();
+    {
+        $request->authenticate();
 
-    $user = auth()->user();
-    $ip = $request->ip();
+        $user = Auth::user();
+        $ip = $request->ip();
 
-    $sessionLifetime = config('session.lifetime') * 60;
+        $sessionLifetime = config('session.lifetime') * 60;
 
-    // 🔒 Cek sesi aktif di IP yang sama
-    $existingSession = UserSession::where('ip_address', $ip)
-        ->where('last_activity', '>=', time() - $sessionLifetime)
-        ->first();
+        // 🔒 Cek sesi aktif di IP yang sama
+        $existingSession = UserSession::where('ip_address', $ip)
+            ->where('last_activity', '>=', time() - $sessionLifetime)
+            ->first();
 
-    if ($existingSession) {
-        Auth::logout();
+        if ($existingSession) {
+            Auth::logout();
 
-        return back()->withErrors([
-            'email' => 'Perangkat ini sedang digunakan untuk login. Silakan logout terlebih dahulu.'
+            return back()->withErrors([
+                'email' => 'Perangkat ini sedang digunakan untuk login. Silakan logout terlebih dahulu.'
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        UserSession::create([
+            'id_user'       => $user->id_user,
+            'session_id'    => $request->session()->getId(),
+            'ip_address'    => $ip,
+            'user_agent'    => $request->userAgent(),
+            'last_activity' => time(),
         ]);
+
+        return match ($user->role) {
+            'admin' => redirect()->intended(route('admin.dashboard')),
+            'guru'  => redirect()->intended(route('guru.dashboard')),
+            'siswa' => redirect()->intended(route('siswa.dashboard')),
+            default => redirect('/'),
+        };
     }
 
-    $request->session()->regenerate();
+    public function destroy(Request $request): RedirectResponse
+    {
+        UserSession::where('id_user', Auth::user()->id_user)->delete();
 
-    UserSession::create([
-        'id_user'       => $user->id_user,
-        'session_id'    => $request->session()->getId(),
-        'ip_address'    => $ip,
-        'user_agent'    => $request->userAgent(),
-        'last_activity' => time(),
-    ]);
+        Auth::logout();
 
-    return match ($user->role) {
-        'admin' => redirect()->intended(route('admin.dashboard')),
-        'guru'  => redirect()->intended(route('guru.dashboard')),
-        'siswa' => redirect()->intended(route('siswa.dashboard')),
-        default => redirect('/'),
-    };
-}
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-public function destroy(Request $request)
-{
-    UserSession::where('id_user', auth()->user()->id_user)->delete();
-
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect('/');
-}
-
+        return redirect('/');
+    }
 }

@@ -10,7 +10,7 @@ class User extends Authenticatable
     protected $primaryKey = 'id_user';
     public $incrementing = true;
     protected $keyType = 'int';
-    
+
     protected $fillable = [
         'nama',
         'email',
@@ -22,13 +22,27 @@ class User extends Authenticatable
 
     protected $hidden = ['password'];
 
+    public function getAuthIdentifierName()
+    {
+        return 'id_user';
+    }
+
     public function userable()
     {
         return $this->morphTo();
     }
 
     // Helper
-    public function isAdmin() { return $this->role === 'admin'; }
-    public function isGuru() { return $this->role === 'guru'; }
-    public function isSiswa() { return $this->role === 'siswa'; }
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+    public function isGuru()
+    {
+        return $this->role === 'guru';
+    }
+    public function isSiswa()
+    {
+        return $this->role === 'siswa';
+    }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('nis')->unique();
             $table->string('nisn')->unique();
             $table->string('nama');
-            $table->foreignId('id_kelas')->constrained('kelas', 'id_kelas')->cascadeOnDelete();
+            $table->foreignId('id_kelas')->constrained('kelas', 'id_kelas')->nullOnDelete();
             $table->timestamps();
         });
     }

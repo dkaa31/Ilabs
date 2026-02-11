@@ -1,92 +1,90 @@
-
-  <div class="px-3 py-3 mb-4 border-bottom">
+<div class="px-3 py-3 mb-4 border-bottom">
     <div class="d-flex align-items-center gap-3">
-      @if(Auth::user()->foto)
-        <img src="{{ asset('storage/' . Auth::user()->foto) }}" 
-             class="rounded-circle border" width="45" height="45" alt="User">
-      @else
-        <div class="d-flex align-items-center justify-content-center rounded-circle border bg-light text-dark" 
-             style="width:45px; height:45px; font-weight:bold;">
-          {{ strtoupper(substr(Auth::user()->nama, 0, 1)) }}
+        @if (Auth::user()->foto)
+            <img src="{{ asset('storage/' . Auth::user()->foto) }}" class="rounded-circle border" width="45"
+                height="45" alt="User">
+        @else
+            <div class="d-flex align-items-center justify-content-center rounded-circle border bg-light text-dark"
+                style="width:45px; height:45px; font-weight:bold;">
+                {{ strtoupper(substr(Auth::user()->nama, 0, 1)) }}
+            </div>
+        @endif
+        <div>
+            <div class="fw-semibold">{{ Auth::user()->nama }}</div>
+            <small class="text-secondary">{{ ucfirst(Auth::user()->role) }}</small>
         </div>
-      @endif
-      <div>
-        <div class="fw-semibold">{{ Auth::user()->nama }}</div>
-        <small class="text-secondary">{{ ucfirst(Auth::user()->role) }}</small>
-      </div>
     </div>
-  </div>
+</div>
 
-  <!-- Beranda -->
-  <div class="px-3 mb-3">
+<!-- Beranda -->
+<div class="px-3 mb-3">
     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('guru.dashboard') }}">
-      <i class="fas fa-home me-2"></i> Beranda
+        <i class="fas fa-home me-2"></i> Beranda
     </a>
-  </div>
+</div>
 
-  <!-- Menu Data -->
-  <div class="px-3 mb-3">
+<!-- Menu Data -->
+<div class="px-3 mb-3">
     <a class="nav-link d-flex align-items-center text-dark menu-parent" href="#" data-target="submenu-data">
-      <i class="fas fa-folder me-2"></i> Data
-      <i class="fas fa-chevron-down ms-auto transition rotate-icon"></i>
+        <i class="fas fa-folder me-2"></i> Data
+        <i class="fas fa-chevron-down ms-auto transition rotate-icon"></i>
     </a>
     <div id="submenu-data" class="submenu ms-3 mt-1" style="display: none;">
-      <a class="nav-link {{ request()->routeIs('guru.siswa') ? 'active' : '' }}" href="{{ route('guru.siswa') }}">
-        <i class="fas fa-graduation-cap me-2"></i> Siswa
-      </a>
+        <a class="nav-link {{ request()->routeIs('guru.siswa') ? 'active' : '' }}" href="{{ route('guru.siswa') }}">
+            <i class="fas fa-graduation-cap me-2"></i> Siswa
+        </a>
     </div>
-  </div>
+</div>
 
-  <div class="px-3 mb-3">
+<div class="px-3 mb-3">
     <a class="nav-link d-flex align-items-center text-dark menu-parent" href="#" data-target="submenu-absensi">
-      <i class="fas fa-qrcode me-2"></i> Absensi QR
-      <i class="fas fa-chevron-down ms-auto transition rotate-icon"></i>
+        <i class="fas fa-qrcode me-2"></i> Absensi QR
+        <i class="fas fa-chevron-down ms-auto transition rotate-icon"></i>
     </a>
     <div id="submenu-absensi" class="submenu ms-3 mt-1" style="display: none;">
-      <!-- <a class="nav-link {{ request()->routeIs('absensi.qr') ? 'active' : '' }}" href="{{ route('absensi.qr') }}">
+        <!-- <a class="nav-link {{ request()->routeIs('absensi.qr') ? 'active' : '' }}" href="{{ route('absensi.qr') }}">
         <i class="fas fa-qrcode me-2"></i> QR Saya
       </a> -->
-      <a class="nav-link {{ request()->routeIs('absensi.data') ? 'active' : '' }}" href="{{ route('absensi.data') }}">
-        <i class="fas fa-clipboard-list me-2"></i> Data Absen
-      </a>
-      <a class="nav-link {{ request()->routeIs('absensi.scan') ? 'active' : '' }}" href="{{ route('absensi.scan') }}">
-        <i class="fas fa-mobile-alt me-2"></i> Scan Absen
-      </a>
-      <!-- <a class="nav-link {{ request()->routeIs('izin.ajukan') ? 'active' : '' }}" href="{{ route('izin.create') }}">
+        <a class="nav-link {{ request()->routeIs('absensi.data') ? 'active' : '' }}"
+            href="{{ route('absensi.data') }}">
+            <i class="fas fa-clipboard-list me-2"></i> Data Absen
+        </a>
+        <a class="nav-link {{ request()->routeIs('absensi.scan') ? 'active' : '' }}"
+            href="{{ route('absensi.scan') }}">
+            <i class="fas fa-mobile-alt me-2"></i> Scan Absen
+        </a>
+        <!-- <a class="nav-link {{ request()->routeIs('izin.ajukan') ? 'active' : '' }}" href="{{ route('izin.create') }}">
         <i class="fas fa-clipboard-list me-2"></i> Pengajuan Absen
       </a> -->
-      <a class="nav-link {{ request()->routeIs('izin.pengajuan') ? 'active' : '' }}" href="{{ route('izin.index') }}">
-        <i class="fas fa-clipboard-list me-2"></i> Verifikasi Absen
-      </a>
+        <a class="nav-link {{ request()->routeIs('izin.pengajuan') ? 'active' : '' }}"
+            href="{{ route('izin.index') }}">
+            <i class="fas fa-clipboard-list me-2"></i> Verifikasi Absen
+        </a>
     </div>
-  </div>
+</div>
 
 <!-- Display -->
 <div class="px-3">
-  <a class="nav-link d-flex align-items-center text-dark menu-parent" href="#" data-target="submenu-display">
-    <i class="fas fa-desktop me-2"></i> Display
-    <i class="fas fa-chevron-down ms-auto transition rotate-icon"></i>
-  </a>
-  <div id="submenu-display" class="submenu ms-3 mt-1" style="display: none;">
-    <a class="nav-link" href="{{ route('display.tampilan.select') }}"
-    target="_blank" 
-    rel="noopener noreferrer">
-      <i class="fas fa-tv me-2"></i> Tampilan
+    <a class="nav-link d-flex align-items-center text-dark menu-parent" href="#" data-target="submenu-display">
+        <i class="fas fa-desktop me-2"></i> Display
+        <i class="fas fa-chevron-down ms-auto transition rotate-icon"></i>
     </a>
-    <a class="nav-link" href="{{ route('display.jadwal.select') }}"
-    target="_blank" 
-    rel="noopener noreferrer">
-      <i class="fas fa-calendar-alt me-2"></i> Jadwal
-    </a>
-  </div>
+    <div id="submenu-display" class="submenu ms-3 mt-1" style="display: none;">
+        <a class="nav-link" href="{{ route('display.tampilan.select') }}" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-tv me-2"></i> Tampilan
+        </a>
+        <a class="nav-link" href="{{ route('display.jadwal.select') }}" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-calendar-alt me-2"></i> Jadwal
+        </a>
+    </div>
 </div>
 
-  <!-- Logout -->
-  <div class="px-3 mt-4 pt-3 border-top">
+<!-- Logout -->
+<div class="px-3 mt-4 pt-3 border-top">
     <form method="POST" action="{{ route('logout') }}" class="d-inline">
-      @csrf
-      <button type="submit" class="nav-link text-danger d-flex align-items-center w-100">
-        <i class="fas fa-sign-out-alt me-2"></i> Keluar
-      </button>
+        @csrf
+        <button type="submit" class="nav-link text-danger d-flex align-items-center w-100">
+            <i class="fas fa-sign-out-alt me-2"></i> Keluar
+        </button>
     </form>
-  </div>
+</div>

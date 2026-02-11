@@ -14,8 +14,15 @@ class Jadwal extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'hari', 'jam_ke', 'waktu_mulai', 'waktu_selesai', 'status',
-        'id_guru', 'id_mapel', 'id_ruangan', 'id_kelas'
+        'hari',
+        'jam_ke',
+        'waktu_mulai',
+        'waktu_selesai',
+        'status',
+        'id_guru',
+        'id_mapel',
+        'id_ruangan',
+        'id_kelas'
     ];
 
     public function guru()

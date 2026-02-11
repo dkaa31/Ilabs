@@ -10,27 +10,27 @@ use Illuminate\Support\Facades\File;
 class UserSessionController extends Controller
 {
     public function index(Request $request)
-{
-    $query = UserSession::with('user');
+    {
+        $query = UserSession::with('user');
 
-    if ($request->filled('keyword')) {
-        $query->whereHas('user', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->keyword . '%');
-        });
+        if ($request->filled('keyword')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->keyword . '%');
+            });
+        }
+
+        if ($request->filled('role')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('role', $request->role);
+            });
+        }
+
+        $activeSessions = $query
+            ->orderBy('last_activity', 'desc')
+            ->get();
+
+        return view('admin.user-sessions.index', compact('activeSessions'));
     }
-
-    if ($request->filled('role')) {
-        $query->whereHas('user', function ($q) use ($request) {
-            $q->where('role', $request->role);
-        });
-    }
-
-    $activeSessions = $query
-        ->orderBy('last_activity', 'desc')
-        ->get();
-
-    return view('admin.user-sessions.index', compact('activeSessions'));
-}
 
 
     public function destroy(UserSession $session)

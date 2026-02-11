@@ -23,7 +23,9 @@ class JadwalController extends Controller
             $jadwals->where('id_ruangan', $ruanganId);
         }
 
-        $jadwals = $jadwals->orderBy('waktu_mulai')->get();
+        $jadwals = $jadwals->orderBy('waktu_mulai')
+            ->paginate(12)
+            ->withQueryString();
         $ruangans = Ruangan::all();
 
         return view('admin.jadwal.index', compact('jadwals', 'ruangans'));
@@ -50,43 +52,47 @@ class JadwalController extends Controller
         $hari = session('filter_hari', 'Senin');
         $ruanganId = session('filter_ruangan_id');
 
-        return view('admin.jadwal.create', compact('gurus', 'mapels', 'ruangans', 'kelases','hari', 'ruanganId'));
+        return view('admin.jadwal.create', compact('gurus', 'mapels', 'ruangans', 'kelases', 'hari', 'ruanganId'));
     }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat',
-        'jam_ke' => 'required|string|max:20',
-        'waktu_mulai' => 'required|date_format:H:i',
-        'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
-        'id_ruangan' => 'required|exists:ruangans,id_ruangan',
-        'status' => 'required|in:Aktif,Istirahat',
-    ]);
-
-    $data = $request->only([
-        'hari', 'jam_ke', 'waktu_mulai', 'waktu_selesai',
-        'id_ruangan', 'status'
-    ]);
-
-    if ($request->status === 'Aktif') {
+    public function store(Request $request)
+    {
         $request->validate([
-            'id_guru' => 'required|exists:gurus,id_guru',
-            'id_mapel' => 'required|exists:mapels,id_mapel',
-            'id_kelas' => 'required|exists:kelas,id_kelas',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat',
+            'jam_ke' => 'required|string|max:20',
+            'waktu_mulai' => 'required|date_format:H:i',
+            'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
+            'id_ruangan' => 'required|exists:ruangans,id_ruangan',
+            'status' => 'required|in:Aktif,Istirahat',
         ]);
-        $data['id_guru'] = $request->id_guru;
-        $data['id_mapel'] = $request->id_mapel;
-        $data['id_kelas'] = $request->id_kelas;
-    } else {
-        $data['id_guru'] = null;
-        $data['id_mapel'] = null;
-        $data['id_kelas'] = null;
-    }
 
-    Jadwal::create($data);
-    return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil ditambahkan.');
-}
+        $data = $request->only([
+            'hari',
+            'jam_ke',
+            'waktu_mulai',
+            'waktu_selesai',
+            'id_ruangan',
+            'status'
+        ]);
+
+        if ($request->status === 'Aktif') {
+            $request->validate([
+                'id_guru' => 'required|exists:gurus,id_guru',
+                'id_mapel' => 'required|exists:mapels,id_mapel',
+                'id_kelas' => 'required|exists:kelas,id_kelas',
+            ]);
+            $data['id_guru'] = $request->id_guru;
+            $data['id_mapel'] = $request->id_mapel;
+            $data['id_kelas'] = $request->id_kelas;
+        } else {
+            $data['id_guru'] = null;
+            $data['id_mapel'] = null;
+            $data['id_kelas'] = null;
+        }
+
+        Jadwal::create($data);
+        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil ditambahkan.');
+    }
 
     public function edit(Jadwal $jadwal)
     {
@@ -97,39 +103,42 @@ public function store(Request $request)
         return view('admin.jadwal.edit', compact('jadwal', 'gurus', 'mapels', 'ruangans', 'kelases'));
     }
 
-public function update(Request $request, Jadwal $jadwal)
-{
-    $request->validate([
-        'jam_ke' => 'required|string|max:20',
-        'waktu_mulai' => 'required|date_format:H:i',
-        'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
-        'id_ruangan' => 'required|exists:ruangans,id_ruangan',
-        'status' => 'required|in:Aktif,Istirahat',
-    ]);
-
-    $data = $request->only([
-        'jam_ke', 'waktu_mulai', 'waktu_selesai',
-        'id_ruangan', 'status'
-    ]);
-
-    if ($request->status === 'Aktif') {
+    public function update(Request $request, Jadwal $jadwal)
+    {
         $request->validate([
-            'id_guru' => 'required|exists:gurus,id_guru',
-            'id_mapel' => 'required|exists:mapels,id_mapel',
-            'id_kelas' => 'required|exists:kelas,id_kelas',
+            'jam_ke' => 'required|string|max:20',
+            'waktu_mulai' => 'required|date_format:H:i',
+            'waktu_selesai' => 'required|date_format:H:i|after:waktu_mulai',
+            'id_ruangan' => 'required|exists:ruangans,id_ruangan',
+            'status' => 'required|in:Aktif,Istirahat',
         ]);
-        $data['id_guru'] = $request->id_guru;
-        $data['id_mapel'] = $request->id_mapel;
-        $data['id_kelas'] = $request->id_kelas;
-    } else {
-        $data['id_guru'] = null;
-        $data['id_mapel'] = null;
-        $data['id_kelas'] = null;
-    }
 
-    $jadwal->update($data);
-    return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil diperbarui.');
-}
+        $data = $request->only([
+            'jam_ke',
+            'waktu_mulai',
+            'waktu_selesai',
+            'id_ruangan',
+            'status'
+        ]);
+
+        if ($request->status === 'Aktif') {
+            $request->validate([
+                'id_guru' => 'required|exists:gurus,id_guru',
+                'id_mapel' => 'required|exists:mapels,id_mapel',
+                'id_kelas' => 'required|exists:kelas,id_kelas',
+            ]);
+            $data['id_guru'] = $request->id_guru;
+            $data['id_mapel'] = $request->id_mapel;
+            $data['id_kelas'] = $request->id_kelas;
+        } else {
+            $data['id_guru'] = null;
+            $data['id_mapel'] = null;
+            $data['id_kelas'] = null;
+        }
+
+        $jadwal->update($data);
+        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil diperbarui.');
+    }
 
     public function destroy(Jadwal $jadwal)
     {
